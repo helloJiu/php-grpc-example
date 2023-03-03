@@ -1,0 +1,28 @@
+syntax = "proto3";
+// protoc --go_out=. --go-grpc_out=require_unimplemented_servers=false:.  internal/mall/pb/*.proto
+
+option go_package="internal/mall/pb"; // 生成到该目录下
+
+package pb.mall; // 其他语言包名
+
+message Product {
+    int32 id = 1;
+    string name = 2;
+    string desc = 3;
+    int32 stock = 4;
+    int32 amount = 5;
+    string create_time = 6;
+    string update_time = 7;
+}
+
+message ProductIdRequest {
+    int32 id = 1;
+}
+
+message ProductResponse {
+    Product product = 1;
+}
+
+service ProductService {
+    rpc FindProductById(ProductIdRequest) returns (ProductResponse);
+}

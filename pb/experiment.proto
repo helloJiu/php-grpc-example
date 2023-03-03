@@ -1,0 +1,368 @@
+syntax = "proto3";
+
+option go_package = "./;experiment";
+package pb.experiment;
+
+import "validator.proto";
+
+// 定义实验操作服务
+service Experiment {
+  //获取实验列表
+  rpc Index (IndexRequest) returns (IndexResponse) {}
+
+  //重命名
+  rpc Rename (RenameRequest) returns (InfoResponse) {}
+
+  //详情
+  rpc Info (InfoRequest) returns (InfoResponse) {}
+
+  //创建或更新
+  rpc CreateOrUpdate (CreateOrUpdateRequest) returns (InfoResponse) {}
+
+  //删除实验
+  rpc Delete (DeleteOrRestoreRequest) returns (Reply) {}
+
+  // 批量删除
+  rpc BatchDelete (BatchDeleteOrRestoreRequest) returns (Reply) {}
+
+  // 批量物理删除
+  rpc BatchPhyDelete (BatchDeleteOrRestoreRequest) returns (Reply) {}
+
+  //清空回收站
+  rpc Clear (ClearRequest) returns (Reply) {}
+
+  //恢复实验
+  rpc Restore (DeleteOrRestoreRequest) returns (Reply) {}
+
+  rpc BatchRestore (BatchDeleteOrRestoreRequest) returns (Reply) {}
+
+  //移动实验
+  rpc Move (MoveRequest) returns (Reply) {}
+
+  //批量移动
+  rpc BatchMove (BatchMoveRequest) returns (Reply) {}
+
+  //复制
+  rpc Copy (CopyRequest) returns (InfoResponse) {}
+
+  //文件夹
+  rpc Folder (IndexRequest) returns (IndexResponse) {}
+
+  //category
+  rpc Category (CategoryRequest) returns (CategoryResponse) {}
+
+  // 播放
+  rpc Play (PlayRequest) returns (PlayResponse) {}
+
+
+  //获取实验全量数据
+  rpc SyncGetFullData (SyncGetFullDataRequest) returns (SyncFullDataResponse) {}
+
+  // 同步基本数据至服务器
+  rpc SyncBaseData (SyncDataRequest) returns (InfoResponse) {}
+
+  // 同步删除
+  rpc SyncDelete (SyncDeleteRequest) returns (Reply) {}
+
+
+  // 获取实验内容
+  rpc GetContentData (GetContentRequest) returns (GetContentResponse) {}
+
+  //同步-上传需要同步的数据
+  rpc SyncPushData (SyncPushDataRequest) returns (SyncPushDataResponse) {}
+
+
+}
+
+// 同步服务---上传请求参数
+message SyncPushDataResponse {
+  repeated SyncChange changes = 1 ;  //需要同步的数据
+  map<string, string> errs = 2;
+}
+
+
+
+// 同步服务---上传请求参数
+message SyncPushDataRequest {
+  string tenant = 1 [(validator.field) = {string_not_empty: true, human_error: "租户必须填写"}];     //租户
+  string user_id = 2  [(validator.field) = {string_not_empty: true, human_error: "用户ID必须填写"}];  //用户ID
+  repeated SyncChange changes = 3 ;  //需要同步的数据
+  int64  subject_id = 4 [(validator.field) = {int_gt: 0, int_lt: 5, human_error: "学科ID错误"}] ;    //学科ID 1-物理 2-化学 3-生物 4-小学科学
+  int64 client_id = 6; //客户端ID
+}
+
+// 同步服务---需要同步的数据
+message SyncChange {
+  int64  type = 1;       // 1-新建  2-更新   3-删除
+  string obj = 2;        // 需要新增的数据
+  string mods = 3;       // 需要修改的数据
+  string key = 4;        //实验uuid
+  string table = 5;      //表名【前端需要，后端不需要，可忽略】
+
+}
+
+
+message GetContentRequest {
+  repeated string uuids = 1;
+}
+
+message GetContentResponse {
+  repeated ContentResponse data = 1;
+}
+
+
+// 同步删除请求参数
+message SyncDeleteRequest {
+  string tenant = 1 [(validator.field) = {string_not_empty: true, human_error: "租户必须填写"}];     //租户
+  string user_id = 2  [(validator.field) = {string_not_empty: true, human_error: "用户ID必须填写"}];  //用户ID
+  string uuid = 3 [(validator.field) = {string_not_empty: true, human_error: "记录ID必须填写"}];    //实验ID
+  int64 client_id = 4; //客户端ID
+}
+
+
+// 获取全量数据
+message SyncGetFullDataRequest {
+  string tenant = 1 [(validator.field) = {string_not_empty: true, human_error: "租户必须填写"}];     //租户
+  string user_id = 2  [(validator.field) = {string_not_empty: true, human_error: "用户ID必须填写"}];  //用户ID
+  int64  subject_id = 3 [(validator.field) = {int_gt: 0, int_lt: 5, human_error: "学科ID错误"}] ;    //学科ID 1-物理 2-化学 3-生物 4-小学科学
+  int64 version = 4; //同步的版本号
+  int64 page = 5; //当前页数
+  int64 per_page = 6; //每页显示条数
+  int64 client_id = 7; //客户端ID
+}
+
+message Uuid {
+  string uuid = 1; //实验ID
+}
+
+message UuidVersion {
+  string uuid = 1; //实验ID
+  int64 version = 2; //实验版本号
+}
+
+
+
+message PlayRequest {
+  string uuid = 1; //实验ID
+  string tenant = 2;  //租户名称
+  string user_id = 3;  //用户ID
+  string daty_type = 4;  //实验类型 如果是资源类实验参数为res，其他实验参数留空
+  int64  subject_id = 5 [(validator.field) = {int_gt: 0, int_lt: 5, human_error: "学科ID错误"}] ;    //学科ID 1-物理 2-化学 3-生物 4-小学科学
+
+}
+
+
+message PlayData {
+  string data_type = 1; //播放数据类型   json:json数据   file：通过文件播放
+  string data = 2; //json数据或文件地址
+}
+
+
+message PlayResponse {
+  int64 duration = 1; //非vip播放时长(单位秒) 如果为0则播放时长不受限制
+  bool is_limit = 2; //true:已限流  false:未限流
+  bool is_vip = 3; //true:vip用户  false:非vip用户
+  PlayData play_data = 4; //播放数据
+
+}
+
+
+
+
+message CategoryRequest {
+  int64 subject_id = 1; //学科ID 1-物理 2-化学 3-生物 4-小学科学
+}
+
+message CategoryInfo {
+  int64 id = 1; //实验类别id
+  string name = 2; //实验类别名称
+  int64 subject_id = 3; //学科ID 1-物理 2-化学 3-生物 4-小学科学
+}
+
+
+message CategoryResponse {
+  repeated CategoryInfo data = 4;  //返回数据
+}
+
+// 获取列表请求参数
+message IndexRequest {
+  int64  page = 1;    //页码
+  int64  per_page = 2;    //perPage 每页显示条数
+  string tenant = 3 [(validator.field) = {string_not_empty: true, human_error: "租户必须填写"}];     //租户
+  string user_id = 4  [(validator.field) = {string_not_empty: true, human_error: "用户ID必须填写"}];  //用户ID
+  int64  subject_id = 5 [(validator.field) = {int_gt: 0, int_lt: 5, human_error: "学科ID错误"}] ;    //学科ID 1-物理 2-化学 3-生物 4-小学科学
+  int64  status = 6;    //状态
+  string keyword = 7;    //标题
+  string sort_direction = 8;    //排序 （desc 按照时间顺序倒叙排序； asc 顺序排序）
+  string sort_field = 9;    //排序字段 （现支持 title、create_at、update_at）
+  string  parent_id = 10;   //0-根目录  文件夹ID
+  int64  is_folder = 11;   //1-文件夹
+
+}
+
+
+// 重命名请求参数
+message RenameRequest {
+  string tenant = 1 [(validator.field) = {string_not_empty: true, human_error: "租户必须填写"}];    //租户
+  string user_id = 2 [(validator.field) = {string_not_empty: true, human_error: "用户ID必须填写"}];    //用户ID
+  string uuid = 3 [(validator.field) = {string_not_empty: true, human_error: "记录ID必须填写"}];    //实验ID
+  string title = 4 [(validator.field) = {string_not_empty: true, human_error: "名称必须填写"}];    //标题
+  int64  version = 5;   //版本号
+}
+
+// 获取实验详情请求参数
+message InfoRequest {
+  string uuid = 1 [(validator.field) = {string_not_empty: true, human_error: "记录ID必须填写"}];    //实验ID
+  string columns = 2;    //获取的实验字段，如值为content，则返回包含实验数据得消息，如为其他则返回实验基本消息
+}
+
+
+// 创建或更新实验请求参数
+message CreateOrUpdateRequest {
+  string tenant = 1 [(validator.field) = {string_not_empty: true, human_error: "租户必须填写"}];    //租户
+  string user_id = 2 [(validator.field) = {string_not_empty: true, human_error: "用户ID必须填写"}];    //用户ID
+  string uuid = 3;    //实验ID
+  int64 subject_id = 4 [(validator.field) = {int_gt: 0, int_lt: 5, human_error: "学科ID错误"}];    //学科ID 1-物理 2-化学 3-生物 4-小学科学
+  string title = 5 [(validator.field) = {string_not_empty: true, human_error: "名称必须填写"}];    //标题
+  string thumb = 6;    //实验缩略图
+  int64  is_folder = 7;    //0-实验  1-文件夹
+  int64  is_vip = 8;    //0-非vip课件  1-VIP课件
+  int64  period = 9;    //0-未设置  1-小学 2-初中 3-高中
+  string  parent_id = 10;   //0-根目录  文件夹ID
+  int64  category_id = 11;   //实验分类
+  map<string, string> content = 12;  //实验内容 (其中实验数据得KEY为data，简介的KEY为Introduce)
+  int64  create_at = 13;   //创建时间
+  int64  update_at = 14;   //更新时间
+  int64  version = 15;   //版本号
+  int64  status = 16;   //0-未删除  1-已移到到回收站
+  int64  is_recycle_root = 17;   //是否再回收站根目录下  0-否 1-是
+  string  keyword = 18;   //关键字
+
+}
+
+// 删除、恢复或复制实验请求参数
+message DeleteOrRestoreRequest {
+  string tenant = 1 [(validator.field) = {string_not_empty: true, human_error: "租户必须填写"}];    //租户
+  string user_id = 2 [(validator.field) = {string_not_empty: true, human_error: "用户ID必须填写"}];    //用户ID
+  string uuid = 3 [(validator.field) = {string_not_empty: true, human_error: "记录ID必须填写"}];    //实验ID
+  int64  version = 4;   //版本号
+}
+
+message BatchDeleteOrRestoreRequest {
+  string tenant = 1 [(validator.field) = {string_not_empty: true, human_error: "租户必须填写"}];    //租户
+  string user_id = 2 [(validator.field) = {string_not_empty: true, human_error: "用户ID必须填写"}];    //用户ID
+  string uuids = 3 [(validator.field) = {string_not_empty: true, human_error: "记录ID必须填写"}];    //实验ID，多个用,号隔开
+}
+
+message  CopyRequest {
+  string target_tenant = 1 [(validator.field) = {string_not_empty: true, human_error: "租户必须填写"}];    //目标租户
+  string target_user_id = 2 [(validator.field) = {string_not_empty: true, human_error: "用户ID必须填写"}];    //目标用户ID
+  string uuid = 3  [(validator.field) = {string_not_empty: true, human_error: "记录ID必须填写"}];    //实验ID
+}
+
+
+// 移动实验
+message MoveRequest {
+  string tenant = 1 [(validator.field) = {string_not_empty: true, human_error: "租户必须填写"}];    //租户
+  string user_id = 2 [(validator.field) = {string_not_empty: true, human_error: "用户ID必须填写"}];    //用户ID
+  string uuid = 3 [(validator.field) = {string_not_empty: true, human_error: "记录ID必须填写"}];    //实验ID
+  string parent_id = 4;    //文件夹id 【0为根目录】
+  int64  version = 5;   //版本号
+}
+
+// 批量移动实验
+message BatchMoveRequest {
+  string tenant = 1 [(validator.field) = {string_not_empty: true, human_error: "租户必须填写"}];    //租户
+  string user_id = 2 [(validator.field) = {string_not_empty: true, human_error: "用户ID必须填写"}];    //用户ID
+  string uuids = 3 [(validator.field) = {string_not_empty: true, human_error: "记录ID必须填写"}];    //实验ID，多个用,号隔开
+  string parent_id = 4;    //文件夹id 【0为根目录】
+}
+
+
+// 清空回收站实验或获取文件夹请求参数
+message ClearRequest {
+  string tenant = 1 [(validator.field) = {string_not_empty: true, human_error: "租户必须填写"}];    //租户
+  string user_id = 2 [(validator.field) = {string_not_empty: true, human_error: "用户ID必须填写"}];    //用户ID
+  int64 subject_id = 4 [(validator.field) = {int_gt: 0, int_lt: 5, human_error: "学科ID错误"}];    //学科ID 1-物理 2-化学 3-生物 4-小学科学
+
+}
+
+// 实验详情响应结果
+message InfoResponse{
+  string tenant = 1;    //租户
+  string user_id = 2;    //用户ID
+  string uuid = 3;    //实验ID
+  int64 subject_id = 4;    //学科ID
+  string title = 5;    //标题
+  string thumb = 6;    //实验缩略图
+  int64  is_folder = 7;    //0-实验  1-文件夹
+  int64  is_vip = 8;    //0-非vip课件  1-VIP课件
+  int64  period = 9;    //0-未设置  1-小学 2-初中 3-高中
+  string  parent_id = 10;   //0-根目录  文件夹ID
+  int64  status = 11;   //0-未删除  1-已移到到回收站
+  int64  is_recycle_root = 12;   //是否再回收站根目录下  0-否 1-是
+  int64  create_at = 13;   //创建时间
+  int64  update_at = 14;   //更新时间
+  map<string, string> content = 15;  //实验内容 (其中实验数据得KEY为data，简介的KEY为Introduce)
+  int64  category_id = 16;   //实验分类
+  string  keyword = 17;   //关键字
+  int64  version = 18;   //版本号
+  bool  is_make_img = 19;   //特殊字段，标记此次更新是否生成图片
+
+}
+
+
+// 实验内容响应结果
+message ContentResponse{
+  string uuid = 1;    //实验ID
+  string data = 2;    //实验内容
+
+
+}
+
+
+
+message IndexResponse {
+  int64  page = 1;    //页码
+  int64  per_page = 2;    //perPage 每页显示条数
+  int64  total = 3;  //总数
+  int64  request_time = 4;  //请求时间
+  repeated InfoResponse data = 5;  //返回数据
+}
+
+
+message SyncFullDataResponse {
+  int64  Version = 1;  //请求时间
+  int64  page = 2;  //下一页
+  int64  per_page = 3;  //每页显示调试
+  repeated InfoResponse data = 4;  //返回实验基本数据
+  repeated ContentResponse content = 5;  //返回实验内容
+  repeated string del_list = 6;  //返回删除的实验id
+  int64 next_change_version = 7;  //下一次内容变更的版本号
+}
+
+
+message SyncDataRequest {
+  string tenant = 1 [(validator.field) = {string_not_empty: true, human_error: "租户必须填写"}];     //租户
+  string user_id = 2  [(validator.field) = {string_not_empty: true, human_error: "用户ID必须填写"}];  //用户ID
+  string obj = 3  [(validator.field) = {string_not_empty: true, human_error: "同步数据不能为空"}];  //需要同步的数据
+  int64  subject_id = 4 [(validator.field) = {int_gt: 0, int_lt: 5, human_error: "学科ID错误"}] ;    //学科ID 1-物理 2-化学 3-生物 4-小学科学
+  string uuid = 5;    //实验ID
+  int64 client_id = 6; //客户端ID
+
+}
+
+
+
+
+
+
+//响应参数
+message Reply {
+  int64  code = 1;  //返回参数
+}
+
+
+
+
+
