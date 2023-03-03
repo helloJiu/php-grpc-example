@@ -40,6 +40,7 @@ function greet($hostname, $name)
         echo "ERROR: " . $status->code . ", " . $status->details . PHP_EOL;
         exit(1);
     }
+    
     var_dump($response->getProduct()->serializeToJsonString());
     var_dump($response->getProduct()->name);
     var_dump(strtotime($response->getProduct()->create_time));
