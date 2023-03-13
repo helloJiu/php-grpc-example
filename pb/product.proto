@@ -3,6 +3,8 @@ syntax = "proto3";
 
 option go_package="internal/mall/pb"; // 生成到该目录下
 
+option php_generic_services = true;
+
 package pb.mall; // 其他语言包名
 
 message Product {

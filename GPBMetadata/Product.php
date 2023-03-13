@@ -16,7 +16,7 @@ class Product
         }
         $pool->internalAddGeneratedFile(
             '
-‡
+„
 product.protopb.mall"z
 Product
 
@@ -33,7 +33,7 @@ class Product
 ProductResponse!
 product (2.pb.mall.Product2X
 ProductServiceF
-FindProductById.pb.mall.ProductIdRequest.pb.mall.ProductResponseBZinternal/mall/pbbproto3'
+FindProductById.pb.mall.ProductIdRequest.pb.mall.ProductResponseBZinternal/mall/pb–bproto3'
         , true);
 
         static::$is_initialized = true;

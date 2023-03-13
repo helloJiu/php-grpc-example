@@ -8,7 +8,7 @@
 
 syntax = "proto3";
 
-package pb.validator;
+package validator;
 
 import "google/protobuf/descriptor.proto";
 

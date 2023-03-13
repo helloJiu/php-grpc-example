@@ -1,7 +1,12 @@
 syntax = "proto3";
 
 option go_package = "./;experiment";
-package pb.experiment;
+
+option php_generic_services = true;
+option (grpc.php_deserialize_request) = true;
+
+
+package experiment;
 
 import "validator.proto";
 

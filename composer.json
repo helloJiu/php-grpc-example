@@ -9,7 +9,8 @@
     "psr-4": {
       "Routeguide\\": "route_guide/Routeguide/",
       "GPBMetadata\\": ["GPBMetadata/","route_guide/GPBMetadata/"],
-      "Pb\\": "pb/"
+      "Experiment\\": "Experiment/",
+      "Pb\\Mall\\": "pb/Mall/"
     }
   }
 }
